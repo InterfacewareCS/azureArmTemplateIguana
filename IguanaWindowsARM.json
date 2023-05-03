@@ -1,0 +1,235 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "adminUsername": {
+        "type": "string",
+        "metadata": {
+          "description": "Username for the Virtual Machine."
+        }
+      },
+      "adminPassword": {
+        "type": "securestring",
+        "minLength": 12,
+        "metadata": {
+          "description": "Password for the Virtual Machine."
+        }
+      },
+      "sourceIPAddress": {
+            "type": "string",
+            "metadata": {
+                "description": "The source IP address from which to allow traffic (e.g My Public IP)."
+            }
+      },
+      "OSVersion": {
+        "type": "string",
+        "defaultValue": "2022-datacenter-azure-edition",
+        "allowedValues": [
+          "2016-datacenter-gensecond",
+          "2016-datacenter-server-core-g2",
+          "2019-datacenter-core-g2",
+          "2019-datacenter-gensecond",
+          "2022-datacenter-core-g2",
+          "2022-datacenter-g2"
+        ],
+        "metadata": {
+          "description": "The Windows version for the VM. This will pick a fully patched image of this given Windows version."
+        }
+      },
+      "vmSize": {
+        "type": "string",
+        "defaultValue": "Basic_A2",
+        "metadata": {
+          "description": "Size of the virtual machine."
+        }
+      },
+      "vmName": {
+        "type": "string",
+        "defaultValue": "simple-vm",
+        "metadata": {
+          "description": "Name of the virtual machine."
+        }
+      }
+    },
+    "variables": {
+      "nicName": "[concat(parameters('vmName'),'-nic')]",
+      "publicIpName": "[concat(variables('nicName'),'-ip')]",
+      "storageAccountName": "[format('bootdiags{0}', uniqueString(resourceGroup().id))]",
+      "addressPrefix": "10.0.0.0/16",
+      "subnetName": "[concat(parameters('vmName'),'-subnet')]",
+      "subnetPrefix": "10.0.0.0/24",
+      "virtualNetworkName": "[concat(parameters('vmName'),'-vnet')]",
+      "networkSecurityGroupName": "[concat(parameters('vmName'),'-nsg')]"
+    },
+    "resources": [
+      {
+        "type": "Microsoft.Storage/storageAccounts",
+        "apiVersion": "2022-05-01",
+        "name": "[variables('storageAccountName')]",
+        "location": "[resourceGroup().location]",
+        "sku": {
+          "name": "Standard_LRS"
+        },
+        "kind": "Storage"
+      },
+      {
+        "type": "Microsoft.Network/publicIPAddresses",
+        "apiVersion": "2022-05-01",
+        "name": "[variables('publicIpName')]",
+        "location": "[resourceGroup().location]",
+        "sku": {"name": "Standard"},
+        "properties": { "publicIPAllocationMethod": "Dynamic"}
+      },
+      {
+        "type": "Microsoft.Network/networkSecurityGroups",
+        "apiVersion": "2022-05-01",
+        "name": "[variables('networkSecurityGroupName')]",
+        "location": "[resourceGroup().location]",
+        "properties": {
+          "securityRules": [
+            {
+              "name": "default-allow-3389",
+              "properties": {
+                "priority": 1000,
+                "access": "Allow",
+                "direction": "Inbound",
+                "destinationPortRange": "3389",
+                "protocol": "Tcp",
+                "sourcePortRange": "*",
+                "sourceAddressPrefix": "[parameters('sourceIPAddress')]",
+                "destinationAddressPrefix": "*"
+              }
+            },
+            {
+              "name": "allow-6543",
+              "properties": {
+                "priority": 1000,
+                "access": "Allow",
+                "direction": "Inbound",
+                "destinationPortRange": "6543",
+                "protocol": "Tcp",
+                "sourcePortRange": "*",
+                "sourceAddressPrefix": "[parameters('sourceIPAddress')]",
+                "destinationAddressPrefix": "*"
+              }
+            },
+            {
+              "name": "allow-6544",
+              "properties": {
+                "priority": 1000,
+                "access": "Allow",
+                "direction": "Inbound",
+                "destinationPortRange": "6544",
+                "protocol": "Tcp",
+                "sourcePortRange": "*",
+                "sourceAddressPrefix": "[parameters('sourceIPAddress')]",
+                "destinationAddressPrefix": "*"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "Microsoft.Network/virtualNetworks",
+        "apiVersion": "2022-05-01",
+        "name": "[variables('virtualNetworkName')]",
+        "location": "[resourceGroup().location]",
+        "properties": {
+          "addressSpace": {
+            "addressPrefixes": [
+              "[variables('addressPrefix')]"
+            ]
+          },
+          "subnets": [
+            {
+              "name": "[variables('subnetName')]",
+              "properties": {
+                "addressPrefix": "[variables('subnetPrefix')]",
+                "networkSecurityGroup": {
+                  "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]"
+                }
+              }
+            }
+          ]
+        },
+        "dependsOn": [
+          "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName'))]"
+        ]
+      },
+      {
+        "type": "Microsoft.Network/networkInterfaces",
+        "apiVersion": "2022-05-01",
+        "name": "[variables('nicName')]",
+        "location": "[resourceGroup().location]",
+        "properties": {
+          "ipConfigurations": [
+            {
+              "name": "ipconfig1",
+              "properties": {
+                "privateIPAllocationMethod": "Dynamic",
+                "publicIPAddress": {
+                  "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpName'))]"
+                },
+                "subnet": {
+                  "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('subnetName'))]"
+                }
+              }
+            }
+          ]
+        },
+        "dependsOn": [
+          "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpName'))]",
+          "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]"
+        ]
+      },
+      {
+        "type": "Microsoft.Compute/virtualMachines",
+        "apiVersion": "2022-03-01",
+        "name": "[parameters('vmName')]",
+        "location": "[resourceGroup().location]",
+        "properties": {
+          "hardwareProfile": {
+            "vmSize": "[parameters('vmSize')]"
+          },
+          "osProfile": {
+            "computerName": "[parameters('vmName')]",
+            "adminUsername": "[parameters('adminUsername')]",
+            "adminPassword": "[parameters('adminPassword')]"
+          },
+          "storageProfile": {
+            "imageReference": {
+              "publisher": "MicrosoftWindowsServer",
+              "offer": "WindowsServer",
+              "sku": "[parameters('OSVersion')]",
+              "version": "latest"
+            },
+            "osDisk": {
+              "createOption": "FromImage",
+              "managedDisk": { "storageAccountType": "StandardSSD_LRS" }
+            }
+          },
+          "networkProfile": {
+            "networkInterfaces": [
+              { "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName'))]"}
+            ]
+          },
+          "diagnosticsProfile": {
+            "bootDiagnostics": {
+              "enabled": true,
+              "storageUri": "[reference(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2022-05-01').primaryEndpoints.blob]"
+            }
+          }
+        },
+        "dependsOn": [
+          "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName'))]",
+          "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+        ]
+      }
+    ],
+    "outputs": {
+      "hostname": {
+        "type": "string",
+        "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpName')), '2022-05-01').dnsSettings.fqdn]"
+      }
+    }
+  }
