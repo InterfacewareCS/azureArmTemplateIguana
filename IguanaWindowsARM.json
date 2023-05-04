@@ -225,9 +225,9 @@
       }
     ],
     "outputs": {
-      "publicIPAddress": {
+      "resourceGroupId": {
           "type": "string",
-          "value": "[reference(variables('nicName')).ipConfigurations[0].publicIPAddress]"
+          "value": "[resourceGroup().id]"
       }
     }
   }
