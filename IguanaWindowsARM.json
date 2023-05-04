@@ -17,13 +17,14 @@
       },
       "sourceIPAddress": {
             "type": "string",
+            "defaultValue": "000.000.00.00",
             "metadata": {
                 "description": "The source IP address from which to allow traffic (e.g My Public IP)."
             }
       },
       "OSVersion": {
         "type": "string",
-        "defaultValue": "2022-datacenter-azure-edition",
+        "defaultValue": "2016-datacenter-server-core-g2",
         "allowedValues": [
           "2016-datacenter-gensecond",
           "2016-datacenter-server-core-g2",
@@ -45,7 +46,7 @@
       },
       "vmName": {
         "type": "string",
-        "defaultValue": "simple-vm",
+        "defaultValue": "iguana-win-vm",
         "metadata": {
           "description": "Name of the virtual machine."
         }
@@ -103,7 +104,7 @@
             {
               "name": "allow-6543",
               "properties": {
-                "priority": 1000,
+                "priority": 1001,
                 "access": "Allow",
                 "direction": "Inbound",
                 "destinationPortRange": "6543",
@@ -116,7 +117,7 @@
             {
               "name": "allow-6544",
               "properties": {
-                "priority": 1000,
+                "priority": 1002,
                 "access": "Allow",
                 "direction": "Inbound",
                 "destinationPortRange": "6544",
