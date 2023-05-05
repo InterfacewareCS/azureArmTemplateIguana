@@ -245,7 +245,7 @@
           "autoUpgradeMinorVersion": true,
           "settings": {
             "fileUris": ["[parameters('iguanaInstallUrl')]"],
-            "commandToExecute": "cmd /c install.bat"
+            "commandToExecute": "cmd /c autoinstall.bat"
           }
         }
       }
