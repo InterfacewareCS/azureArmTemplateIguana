@@ -50,7 +50,7 @@
       },
       "iguanaInstallUrl": {
         "type": "string",
-        "defaultValue": "https://raw.githubusercontent.com/InterfacewareCS/azureTemplate/main/autoinstall.bat",
+        "defaultValue": "https://cf-us-west-1-iguana-templates.s3.us-west-1.amazonaws.com/autoinstall.bat",
         "metadata": {
           "description": "Iguana Installation Batch File URL."
         }
