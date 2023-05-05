@@ -241,7 +241,7 @@
             "fileUris": [
                 "[concat(variables('fileShareEndpoint'), '/scripts/autoinstall.bat')]"
             ],
-            "commandToExecute": "powershell -ExecutionPolicy Unrestricted -Command \"& 'autoinstall.bat'\""
+            "commandToExecute": "cmd /c autoinstall.bat"
           }
         }
       }
