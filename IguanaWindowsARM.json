@@ -58,7 +58,7 @@
       "subnetPrefix": "10.0.0.0/24",
       "virtualNetworkName": "[concat(parameters('vmName'),'-vnet')]",
       "networkSecurityGroupName": "[concat(parameters('vmName'),'-nsg')]",
-      "fileShareEndpoint": "https://cf-us-west-1-iguana-templates.s3.us-west-1.amazonaws.com/autoinstall.bat"
+      "fileShareEndpoint": "https://raw.githubusercontent.com/InterfacewareCS/azureTemplate/main/autoinstall.bat"
     },
     "resources": [
       {
