@@ -57,8 +57,7 @@
       "subnetName": "[concat(parameters('vmName'),'-subnet')]",
       "subnetPrefix": "10.0.0.0/24",
       "virtualNetworkName": "[concat(parameters('vmName'),'-vnet')]",
-      "networkSecurityGroupName": "[concat(parameters('vmName'),'-nsg')]",
-      "fileShareEndpoint": "https://raw.githubusercontent.com/InterfacewareCS/azureTemplate/main/autoinstall.bat"
+      "networkSecurityGroupName": "[concat(parameters('vmName'),'-nsg')]"
     },
     "resources": [
       {
@@ -235,12 +234,10 @@
         "properties": {
           "publisher": "Microsoft.Compute",
           "type": "CustomScriptExtension",
-          "typeHandlerVersion": "1.10",
+          "typeHandlerVersion": "1.7",
           "autoUpgradeMinorVersion": true,
           "settings": {
-            "fileUris": [
-                "[concat(variables('fileShareEndpoint'), '/scripts/autoinstall.bat')]"
-            ],
+            "fileUris": ["https://raw.githubusercontent.com/InterfacewareCS/azureTemplate/main/autoinstall.bat"],
             "commandToExecute": "cmd /c autoinstall.bat"
           }
         }
