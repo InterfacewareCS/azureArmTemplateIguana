@@ -103,5 +103,4 @@ echo         2. Navigate to localhost:%port%
 echo         3. Login and start configuring your Iguana.
 echo.
 echo If needed, shut down Iguana from Windows Services to change additional parameters.
-pause
-(goto) 2>nul
+exit /b 0
