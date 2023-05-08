@@ -42,7 +42,7 @@
       },
       "vmName": {
         "type": "string",
-        "defaultValue": "iguana-win-vm",
+        "defaultValue": "iguana-linux-vm",
         "metadata": {
           "description": "Name of the virtual machine."
         }
