@@ -2,17 +2,27 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
+      "authenticationType": {
+        "type": "string",
+        "defaultValue": "password",
+        "allowedValues": [
+          "sshPublicKey",
+          "password"
+        ],
+        "metadata": {
+          "description": "Type of authentication to use on the Virtual Machine. SSH key is recommended."
+        }
+      },
       "adminUsername": {
         "type": "string",
         "metadata": {
           "description": "Username for the Virtual Machine."
         }
       },
-      "adminPassword": {
+      "adminPasswordOrKey": {
         "type": "securestring",
-        "minLength": 12,
         "metadata": {
-          "description": "Password for the Virtual Machine."
+          "description": "SSH Key or password for the Virtual Machine. SSH key is recommended."
         }
       },
       "sourceIPAddress": {
@@ -77,6 +87,17 @@
           "sku": "7-LVM",
           "version": "latest"
         }
+      },
+      "linuxConfiguration": {
+        "disablePasswordAuthentication": true,
+        "ssh": {
+          "publicKeys": [
+            {
+              "path": "[format('/home/{0}/.ssh/authorized_keys', parameters('adminUsername'))]",
+              "keyData": "[parameters('adminPasswordOrKey')]"
+            }
+          ]
+        }
       }
     },
     "resources": [
@@ -106,12 +127,12 @@
         "properties": {
           "securityRules": [
             {
-              "name": "default-allow-3389",
+              "name": "SSH",
               "properties": {
                 "priority": 1000,
                 "access": "Allow",
                 "direction": "Inbound",
-                "destinationPortRange": "3389",
+                "destinationPortRange": "22",
                 "protocol": "Tcp",
                 "sourcePortRange": "*",
                 "sourceAddressPrefix": "[parameters('sourceIPAddress')]",
@@ -212,7 +233,8 @@
           "osProfile": {
             "computerName": "[parameters('vmName')]",
             "adminUsername": "[parameters('adminUsername')]",
-            "adminPassword": "[parameters('adminPassword')]"
+            "adminPassword": "[parameters('adminPasswordOrKey')]",
+            "linuxConfiguration": "[if(equals(parameters('authenticationType'), 'password'), null(), variables('linuxConfiguration'))]"
           },
           "storageProfile": {
             "imageReference": "[variables('imageReference')[parameters('OSVersion')]]",
