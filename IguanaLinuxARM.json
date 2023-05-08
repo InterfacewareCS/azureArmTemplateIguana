@@ -275,7 +275,7 @@
           "autoUpgradeMinorVersion": true,
           "settings": {
             "fileUris": ["[parameters('iguanaInstallUrl')]"],
-            "commandToExecute": "apt-get -y update && yum -y install libidn.x86_64 && yum -y install unzip && yum -y install sed && systemctl start crond.service && sh autoinstall.sh"
+            "commandToExecute": "sudo yum -y install libidn.x86_64 && sudo yum -y install unzip && sudo yum -y install sed && sudo systemctl start crond.service && sudo sh autoinstall.sh"
           }
         }
       }
